@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Game Asam dan Basa</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .game-title {
+      color: #2c3e50;
+      margin-top: 20px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      font-size: 2rem;
+    }
+    
+    .instructions {
+      color: #34495e;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+    
+    .dashboard {
+      display: flex;
+      justify-content: space-between;
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+    
+    .score-display, .timer-display, .level-display {
+      background-color: #fff;
+      padding: 10px 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-weight: bold;
+      min-width: 100px;
+    }
+    
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 20px auto;
+      max-width: 900px;
+    }
+    
+    .drop-zone {
+      width: 220px;
+      min-height: 320px;
+      padding: 15px;
+      border: 3px dashed #bdc3c7;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+    }
+    
+    .drop-zone h3 {
+      margin-top: 5px;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+    
+    #larutanList {
+      background-color: #f8f9fa;
+    }
+    
+    #asam {
+      background-color: rgba(231, 76, 60, 0.15);
+      border-color: #e74c3c;
+    }
+    
+    #asam.highlight {
+      background-color: rgba(231, 76, 60, 0.3);
+      box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+    }
+    
+    #basa {
+      background-color: rgba(46, 204, 113, 0.15);
+      border-color: #2ecc71;
+    }
+    
+    #basa.highlight {
+      background-color: rgba(46, 204, 113, 0.3);
+      box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+    }
+    
+    .item {
+      padding: 12px 15px;
+      margin: 10px 5px;
+      background: #fff;
+      border-radius: 8px;
+      cursor: grab;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+      width: 85%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .item:before {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 100%;
+      left: 0;
+      top: 0;
+    }
+    
+    .item[data-type="asam"]:before {
+      background-color: #e74c3c;
+    }
+    
+    .item[data-type="basa"]:before {
+      background-color: #2ecc71;
+    }
+    
+    .item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+    }
+    
+    .item.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+    }
+    
+    .formula {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+    
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    button {
+      padding: 12px 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    #checkBtn {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    #checkBtn:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+    }
+    
+    #resetBtn {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    #resetBtn:hover {
+      background-color: #7f8c8d;
+      transform: translateY(-2px);
+    }
+    
+    #nextLevelBtn {
+      background-color: #9b59b6;
+      color: white;
+      display: none;
+    }
+    
+    #nextLevelBtn:hover {
+      background-color: #8e44ad;
+      transform: translateY(-2px);
+    }
+    
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 15px;
+      border-radius: 10px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.3s ease;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .modal-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 500px;
+      width: 80%;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal.active .modal-content {
+      transform: translateY(0);
+    }
+    
+    .modal h2 {
+      color: #2c3e50;
+      margin-top: 0;
+    }
+    
+    .modal p {
+      color: #7f8c8d;
+      margin-bottom: 25px;
+    }
+    
+    .close-modal {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .info-panel {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 800px;
+      margin: 30px auto;
+      text-align: left;
+    }
+    
+    .info-panel h3 {
+      color: #2c3e50;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 10px;
+      margin-top: 0;
+      text-align: center;
+    }
+    
+    .info-content {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    
+    .info-section {
+      flex: 1;
+      min-width: 250px;
+      padding: 10px;
+    }
+    
+    .info-section h4 {
+      color: #3498db;
+      margin-bottom: 10px;
+    }
+    
+    .info-section ul {
+      padding-left: 20px;
+    }
+    
+    .info-section li {
+      margin-bottom: 5px;
+      color: #34495e;
+    }
+    
+    /* Animasi konfeti untuk jawaban benar */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #f39c12;
+      animation: fall 3s linear forwards;
+      z-index: 100;
+    }
+    
+    @keyframes fall {
+      0% {
+        transform: translateY(-50px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .drop-zone {
+        width: 80%;
+        min-height: 200px;
+      }
+      
+      .dashboard {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="game-title">Game: Klasifikasi Larutan Asam dan Basa</h1>
+  <p class="instructions">Seret larutan ke kolom yang sesuai!</p>
+  
+  <div class="dashboard">
+    <div class="score-display">Skor: <span id="score">0</span></div>
+    <div class="level-display">Level: <span id="level">1</span></div>
+    <div class="timer-display">Waktu: <span id="timer">60</span>s</div>
+  </div>
+  
+  <div class="container">
+    <div id="larutanList" class="drop-zone">
+      <h3>DAFTAR LARUTAN</h3>
+    </div>
+    <div id="asam" class="drop-zone">
+      <h3>ASAM</h3>
+    </div>
+    <div id="basa" class="drop-zone">
+      <h3>BASA</h3>
+    </div>
+  </div>
+  
+  <div class="button-container">
+    <button id="checkBtn">Periksa Jawaban</button>
+    <button id="resetBtn">Reset</button>
+    <button id="nextLevelBtn">Level Berikutnya</button>
+  </div>
+  
+  <div id="result"></div>
+  
+  <div class="info-panel">
+    <h3>Informasi Tentang Asam dan Basa</h3>
+    <div class="info-content">
+      <div class="info-section">
+        <h4>Karakteristik Asam</h4>
+        <ul>
+          <li>Rasanya masam</li>
+          <li>Dapat melepaskan ion H+ (proton) dalam larutan</li>
+          <li>Memerahkan lakmus biru</li>
+          <li>pH < 7</li>
+          <li>Bereaksi dengan logam menghasilkan gas H₂</li>
+        </ul>
+      </div>
+      <div class="info-section">
+        <h4>Karakteristik Basa</h4>
+        <ul>
+          <li>Rasanya pahit</li>
+          <li>Terasa licin seperti sabun</li>
+          <li>Melepaskan ion OH- dalam larutan</li>
+          <li>Membirukan lakmus merah</li>
+          <li>pH > 7</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div id="congratsModal" class="modal">
+    <div class="modal-content">
+      <h2>Selamat!</h2>
+      <p id="modalMessage">Anda telah berhasil menyelesaikan level ini!</p>
+      <button class="close-modal">Lanjut</button>
+    </div>
+  </div>
+
+<script>
+  // Data larutan berdasarkan level
+  const levelData = [
+    // Level 1
+    [
+      { name: "Asam Sulfat", formula: "H₂SO₄", type: "asam" },
+      { name: "Natrium Hidroksida", formula: "NaOH", type: "basa" },
+      { name: "Asam Cuka", formula: "CH₃COOH", type: "asam" },
+      { name: "Amonia", formula: "NH₃", type: "basa" },
+      { name: "Asam Klorida", formula: "HCl", type: "asam" },
+      { name: "Kalsium Hidroksida", formula: "Ca(OH)₂", type: "basa" }
+    ],
+    // Level 2
+    [
+      { name: "Asam Nitrat", formula: "HNO₃", type: "asam" },
+      { name: "Kalium Hidroksida", formula: "KOH", type: "basa" },
+      { name: "Asam Sitrat", formula: "C₆H₈O₇", type: "asam" },
+      { name: "Magnesium Hidroksida", formula: "Mg(OH)₂", type: "basa" },
+      { name: "Asam Fosfat", formula: "H₃PO₄", type: "asam" },
+      { name: "Barium Hidroksida", formula: "Ba(OH)₂", type: "basa" },
+      { name: "Asam Karbonat", formula: "H₂CO₃", type: "asam" },
+      { name: "Litium Hidroksida", formula: "LiOH", type: "basa" }
+    ],
+    // Level 3
+    [
+      { name: "Asam Bromida", formula: "HBr", type: "asam" },
+      { name: "Cesium Hidroksida", formula: "CsOH", type: "basa" },
+      { name: "Asam Fluorida", formula: "HF", type: "asam" },
+      { name: "Strontium Hidroksida", formula: "Sr(OH)₂", type: "basa" },
+      { name: "Asam Iodida", formula: "HI", type: "asam" },
+      { name: "Rubidium Hidroksida", formula: "RbOH", type: "basa" },
+      { name: "Asam Asetat", formula: "CH₃COOH", type: "asam" },
+      { name: "Amonium Hidroksida", formula: "NH₄OH", type: "basa" },
+      { name: "Asam Laktat", formula: "C₃H₆O₃", type: "asam" },
+      { name: "Berillium Hidroksida", formula: "Be(OH)₂", type: "basa" }
+    ]
+  ];
+
+  // Variabel Game
+  let currentLevel = 1;
+  let score = 0;
+  let timerInterval;
+  let timeLeft = 60;
+  let draggedItem = null;
+
+  // Elemen DOM
+  const larutanList = document.getElementById('larutanList');
+  const asamZone = document.getElementById('asam');
+  const basaZone = document.getElementById('basa');
+  const checkBtn = document.getElementById('checkBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const nextLevelBtn = document.getElementById('nextLevelBtn');
+  const resultDisplay = document.getElementById('result');
+  const scoreDisplay = document.getElementById('score');
+  const levelDisplay = document.getElementById('level');
+  const timerDisplay = document.getElementById('timer');
+  const modal = document.getElementById('congratsModal');
+  const modalMessage = document.getElementById('modalMessage');
+  const closeModalBtn = document.querySelector('.close-modal');
+
+  // Inisialisasi game
+  initGame();
+
+  // Fungsi untuk inisialisasi game
+  function initGame() {
+    setupLevel(currentLevel);
+    updateDisplay();
+    startTimer();
+  }
+
+  // Fungsi untuk mempersiapkan level
+  function setupLevel(level) {
+    // Reset daftar larutan
+    larutanList.innerHTML = "<h3>DAFTAR LARUTAN</h3>";
+    asamZone.innerHTML = "<h3>ASAM</h3>";
+    basaZone.innerHTML = "<h3>BASA</h3>";
+    
+    if (level > levelData.length) {
+      // Game selesai jika level melebihi data yang ada
+      showModal("Selamat! Anda telah menyelesaikan semua level!", "Anda telah menguasai konsep asam dan basa!");
+      return;
+    }
+    
+    // Acak urutan larutan
+    const shuffledLarutan = [...levelData[level-1]].sort(() => Math.random() - 0.5);
+    
+    // Tambahkan larutan ke daftar
+    shuffledLarutan.forEach(larutan => {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'item';
+      itemEl.setAttribute('draggable', 'true');
+      itemEl.setAttribute('data-type', larutan.type);
+      itemEl.innerHTML = `${larutan.name} <span class="formula">${larutan.formula}</span>`;
+      
+      // Event listeners untuk drag
+      itemEl.addEventListener('dragstart', handleDragStart);
+      itemEl.addEventListener('dragend', handleDragEnd);
+      
+      larutanList.appendChild(itemEl);
+    });
+    
+    // Reset timer
+    timeLeft = 60 + (level - 1) * 30; // Tambah waktu untuk level yang lebih tinggi
+    clearInterval(timerInterval);
+    startTimer();
+    
+    // Update display
+    updateDisplay();
+  }
+
+  // Fungsi untuk menangani drag start
+  function handleDragStart() {
+    draggedItem = this;
+    setTimeout(() => this.classList.add('dragging'), 0);
+  }
+
+  // Fungsi untuk menangani drag end
+  function handleDragEnd() {
+    this.classList.remove('dragging');
+    draggedItem = null;
+    
+    // Hapus highlight dari drop zones
+    asamZone.classList.remove('highlight');
+    basaZone.classList.remove('highlight');
+  }
+
+  // Event listeners untuk drop zones
+  [asamZone, basaZone, larutanList].forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (zone === asamZone || zone === basaZone) {
+        zone.classList.add('highlight');
+      }
+    });
+    
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('highlight');
+    });
+    
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('highlight');
+      if (draggedItem) {
+        zone.appendChild(draggedItem);
+      }
+    });
+  });
+
+  // Event listener untuk check button
+  checkBtn.addEventListener('click', () => {
+    const asamItems = asamZone.querySelectorAll('.item');
+    const basaItems = basaZone.querySelectorAll('.item');
+    let correct = true;
+    let totalChecked = 0;
+    
+    asamItems.forEach(item => {
+      totalChecked++;
+      if (item.dataset.type !== 'asam') correct = false;
+    });
+    
+    basaItems.forEach(item => {
+      totalChecked++;
+      if (item.dataset.type !== 'basa') correct = false;
+    });
+    
+    const totalItems = levelData[currentLevel-1].length;
+    
+    if (totalChecked < totalItems) {
+      resultDisplay.textContent = `Masih ada ${totalItems - totalChecked} larutan yang belum diklasifikasikan.`;
+      resultDisplay.style.color = "orange";
+      resultDisplay.style.backgroundColor = "#FFF3E0";
+    } else if (correct) {
+      const levelBonus = currentLevel * 100;
+      const timeBonus = timeLeft * 2;
+      const levelScore = levelBonus + timeBonus;
+      score += levelScore;
+      
+      resultDisplay.textContent = `Selamat! Semua jawaban benar! Bonus: +${levelScore} poin (Level: ${levelBonus}, Waktu: ${timeBonus})`;
+      resultDisplay.style.color = "green";
+      resultDisplay.style.backgroundColor = "#E8F5E9";
+      
+      // Tampilkan tombol next level
+      nextLevelBtn.style.display = "inline-block";
+      checkBtn.style.display = "none";
+      
+      // Hentikan timer
+      clearInterval(timerInterval);
+      
+      // Tampilkan konfeti
+      createConfetti();
+      
+      // Tampilkan modal selamat
+      setTimeout(() => {
+        showModal("Level Berhasil!", `Anda mendapatkan tambahan ${levelScore} poin!`);
+      }, 1000);
+    } else {
+      resultDisplay.textContent = "Masih ada jawaban yang salah. Coba lagi!";
+      resultDisplay.style.color = "red";
+      resultDisplay.style.backgroundColor = "#FFEBEE";
+      
+      // Kurangi skor jika salah
+      score = Math.max(0, score - 10);
+    }
+    
+    updateDisplay();
+  });
+
+  // Event listener untuk reset button
+  resetBtn.addEventListener('click', () => {
+    setupLevel(currentLevel);
+    resultDisplay.textContent = "";
+    resultDisplay.style.backgroundColor = "transparent";
+  });
+
+  // Event listener untuk next level button
+  nextLevelBtn.addEventListener('click', () => {
+    currentLevel++;
+    setupLevel(currentLevel);
+    nextLevelBtn.style.display = "none";
+    checkBtn.style.display = "inline-block";
+    resultDisplay.textContent = "";
+    resultDisplay.style.backgroundColor = "transparent";
+  });
+
+  // Event listener untuk close modal button
+  closeModalBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  // Fungsi untuk memulai timer
+  function startTimer() {
+    timerDisplay.textContent = timeLeft;
+    
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timerDisplay.textContent = timeLeft;
+      
+      if (timeLeft <= 10) {
+        timerDisplay.style.color = "red";
+      } else {
+        timerDisplay.style.color = "black";
+      }
+      
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        resultDisplay.textContent = "Waktu habis! Coba lagi!";
+        resultDisplay.style.color = "red";
+        resultDisplay.style.backgroundColor = "#FFEBEE";
+      }
+    }, 1000);
+  }
+
+  // Fungsi untuk update display
+  function updateDisplay() {
+    scoreDisplay.textContent = score;
+    levelDisplay.textContent = currentLevel;
+    timerDisplay.textContent = timeLeft;
+  }
+
+  // Fungsi untuk menampilkan modal
+  function showModal(title, message) {
+    document.querySelector('.modal h2').textContent = title;
+    modalMessage.textContent = message;
+    modal.classList.add('active');
+  }
+
+  // Fungsi untuk membuat konfeti
+  function createConfetti() {
+    const colors = ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+    
+    for (let i = 0; i < 100; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      
+      // Acak bentuk konfeti
+      if (Math.random() > 0.5) {
+        confetti.style.borderRadius = '50%';
+      } else {
+        confetti.style.width = '7px';
+        confetti.style.height = '15px';
+      }
+      
+      document.body.appendChild(confetti);
+      
+      // Hapus konfeti setelah animasi selesai
+      setTimeout(() => {
+        confetti.remove();
+      }, 5000);
+    }
+  }
+</script>
+</body>
+</html>
